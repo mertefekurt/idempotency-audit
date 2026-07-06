@@ -1,16 +1,29 @@
-# idempotency-audit
+# Idempotency Audit
 
-**Operator Note.** Check mutating API specs for idempotency and retry safety.
+![Idempotency Audit cover](assets/readme-cover.svg)
 
-## Why This Exists
+> Check mutating API specs for idempotency and retry safety
 
-Payment, provisioning, and workflow APIs can duplicate work under retries. This CLI flags contracts that omit idempotency guarantees.
+![stack](https://img.shields.io/badge/stack-Python-b45309?style=flat-square) ![python](https://img.shields.io/badge/python-3.11-be185d?style=flat-square) ![license](https://img.shields.io/badge/license-MIT-4b5563?style=flat-square) ![ci](https://img.shields.io/badge/ci-GitHub%20Actions-2563eb?style=flat-square)
 
-## Inputs
+## At a glance
 
-`idempotency-audit` accepts API endpoint notes, OpenAPI snippets, or review text in text, JSON, JSONL, or CSV form.
+| Area | Detail |
+| --- | --- |
+| Focus | idempotency review |
+| Command | `idempotency-audit` |
+| Formats | text, JSON, JSONL, CSV |
+| Output | Markdown table or JSON |
 
-## Example Run
+## What it checks
+
+| Rule | Severity | What it catches |
+| --- | --- | --- |
+| `missing-idempotency` | high | mutating endpoint lacks idempotency |
+| `unsafe-retry` | medium | retries are allowed without safety language |
+| `post-create` | low | mutating POST endpoint detected |
+
+## Try it locally
 
 ```bash
 python -m pip install -e ".[dev]"
@@ -18,30 +31,15 @@ idempotency-audit examples/sample.txt
 idempotency-audit examples/sample.txt --json --fail-on medium
 ```
 
-## Report Format
+## Notes from the code
 
-| Rule | Severity | Meaning |
-|---|---:|---|
-| `missing-idempotency` | high | mutating endpoint lacks idempotency |
-| `unsafe-retry` | medium | retries are allowed without safety language |
-| `post-create` | low | mutating POST endpoint detected |
+`rules.py` keeps the project policy explicit, while `core.py` handles parsing and report rendering. The CLI stays thin on purpose so the checks are easy to test.
 
-## Tests
+## Verify
 
 ```bash
+python -m pip install -e ".[dev]"
 ruff check .
 pytest
 python -m idempotency_audit --help
 ```
-
-License: MIT
-
-### Example Input
-
-```text
-POST /charges creates payment retry allowed idempotency missing
-```
-
-### Architecture
-
-`cli.py` reads files, `core.py` evaluates records, and `rules.py` keeps the idempotency-audit policy surface explicit.
